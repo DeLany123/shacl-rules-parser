@@ -1,0 +1,35 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": [
+      "es2022",
+      "dom"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "types": ["vitest/globals"],
+    "strict": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": false,
+    "noImplicitOverride": true,
+    "declaration": true,
+    "downlevelIteration": true,
+    "inlineSources": true,
+    "outDir": "dist/esm",
+    "preserveConstEnums": true,
+    "removeComments": false,
+    "sourceMap": true,
+
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "lib/**/*.ts",
+    "test/**/*.ts"
+, "lib/demo.ts"  ],
+  "exclude": [
+    "node_modules",
+    "dist/**"
+  ]
+}
