@@ -1,7 +1,7 @@
-import { createToken } from '@traqula/core';
-import { gram, lex as l } from '@traqula/rules-sparql-1-1';
+import { LexerBuilder, createToken } from '@traqula/core';
+import { gram, lex as l } from '@traqula/rules-sparql-1-2';
+// import { lex as l1 } from '@traqula/rules-sparql-1-1';
 
-export const VersionKeyword = createToken({ name : "VersionKeyword", pattern: /VERSION/i });
 export const ImportsKeyword = createToken({ name : "ImportsKeyword", pattern: /IMPORTS/i });
 export const RuleKeyword = createToken({ name : "RuleKeyword", pattern: /RULE/i });
 export const DataKeyword = createToken({ name : "DataKeyword", pattern: /DATA/i });
@@ -13,13 +13,12 @@ export const InverseKeyword   = createToken({ name: "InverseKeyword",   pattern:
 export const NotKeyword = createToken({ name: "NotKeyword", pattern: /NOT/i });
 
 export const shaclTokens = [
-    VersionKeyword,
     ImportsKeyword,
     RuleKeyword,
     TransitiveKeyword,
     SymmetricKeyword,
     InverseKeyword,
-    ...l.sparql11LexerBuilder.tokenVocabulary,
+    ...l.sparql12LexerBuilder.tokenVocabulary,
     DataKeyword,
     NotKeyword,
 
@@ -27,12 +26,11 @@ export const shaclTokens = [
 
 /*
 export const shaclTokens = [
-    VersionKeyword,
     ImportsKeyword,
     RuleKeyword,
-    ... LexerBuilder.create(l.sparql11LexerBuilder)
-        .add(VersionKeyword, ImportsKeyword, RuleKeyword)
-        .addBefore(l.insertDataClause, DataKeyword).tokenVocabulary,
+    ... LexerBuilder.create(l.sparql12LexerBuilder)
+        .add(ImportsKeyword, RuleKeyword)
+        .addBefore(l1., DataKeyword).tokenVocabulary,
     DataKeyword,
 ]
-*/
+*/ 

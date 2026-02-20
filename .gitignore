@@ -1,0 +1,28 @@
+# Dependencies
+# Never commit node_modules; it's huge and others can install it via yarn/npm
+node_modules/
+
+# Build artifacts
+# The 'dist' folder contains the compiled JavaScript. We only want the TS source code in Git.
+dist/
+
+# IDE settings
+# .idea is for WebStorm/IntelliJ. These are personal settings that shouldn't be shared.
+.idea/
+# If you use VS Code, you might want to ignore its local settings too:
+.vscode/
+
+# Logs
+# Errors logs created when yarn or node crashes
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Tooling Cache
+# ESLint creates this to speed up its work; it's specific to your computer
+.eslintcache
+
+# OS-specific files
+.DS_Store
+Thumbs.db

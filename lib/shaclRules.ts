@@ -28,7 +28,7 @@ export const shaclRuleSet: ParserRule<any, 'shaclRuleSet', any> = {
 // [2] RuleOrDataBlock ::= Prologue ( ( Rule | Data )+ ( Prologue1 ( Rule | Data )? )* )?
 export const shaclRuleOrDataBlock: SparqlGrammarRule<'shaclRuleOrDataBlock', any> = {
   name: 'shaclRuleOrDataBlock',
-  impl: ({ACTION, SUBRULE, CONSUME, OPTION, AT_LEAST_ONE, MANY, OR }) => (context) => {
+  impl: ({ACTION, SUBRULE, SUBRULE2, SUBRULE3, SUBRULE4, SUBRULE5, CONSUME, OPTION, OPTION2, AT_LEAST_ONE, MANY, OR, OR2 }) => (context) => {
     const initialPrologue = SUBRULE(shaclPrologue); 
     const elements: any[] = [];
 
@@ -37,21 +37,21 @@ export const shaclRuleOrDataBlock: SparqlGrammarRule<'shaclRuleOrDataBlock', any
         const item = OR([
            // Placeholders
            { ALT: () => SUBRULE(shaclRuleBlock) },
-           { ALT: () => SUBRULE(shaclDataBlock) }
+           { ALT: () => SUBRULE2(shaclDataBlock) }
         ]);
         ACTION(() => elements.push(item));
       });
 
       // ( Prologue1 ( Rule | Data )? )*
       MANY(() => {
-        const decl = SUBRULE(prologue1);
+        const decl = SUBRULE3(prologue1);
         elements.push(decl);
 
         // Optional Rule/Data after the declarati on
-        OPTION(() => {
-           OR([
-             { ALT: () => SUBRULE(shaclRuleBlock) },
-             { ALT: () => SUBRULE(shaclDataBlock) }
+        OPTION2(() => {
+           OR2([
+             { ALT: () => SUBRULE4(shaclRuleBlock) },
+             { ALT: () => SUBRULE5(shaclDataBlock) }
            ]);
         });
       });
@@ -148,11 +148,11 @@ type ShaclRuleBlockResult = shaclDataNode | ShaclDeclarationNode | ShaclRuleNode
 
 export const shaclRuleBlock: SparqlGrammarRule<'shaclRuleBlock', ShaclRuleBlockResult> = {
     name: 'shaclRuleBlock',
-    impl: ({ CONSUME, SUBRULE, ACTION, OR }) => (C) => {
+    impl: ({ CONSUME, SUBRULE, SUBRULE2, ACTION, OR }) => (C) => {
       return OR<ShaclRuleBlockResult>([
         { ALT: () => SUBRULE(shaclRule1) },
         // { ALT: () => SUBRULE(rule2) }, // TODO
-        { ALT: () => SUBRULE(shaclDeclarationBlock) }
+        { ALT: () => SUBRULE2(shaclDeclarationBlock) }
       ]);
     }
 };
@@ -213,25 +213,29 @@ export const bodyPattern: SparqlGrammarRule<'bodyPattern', ShaclBodyNode> = {
 // [17] BodyPattern1 ::= BodyTriplesBlock? ( BodyNotTriples BodyTriplesBlock? )*
 export const bodyPattern1: SparqlGrammarRule<'bodyPattern1', T12.Pattern[]> = {
   name: 'bodyPattern1',
-  impl: ({ OPTION, OPTION2, MANY, SUBRULE, OR, ACTION }) => (C) => {
+  impl: ({ OPTION, OPTION2, MANY, SUBRULE, SUBRULE2, SUBRULE3, SUBRULE4, SUBRULE5, OR, ACTION }) => (C) => {
     const elements: T12.Pattern[] = [];
 
-    const parseTriples = () => {
-      const triples = SUBRULE(originalTriplesBlock); // https://www.w3.org/TR/sparql12-query/#rTriplesBlock
+    // First occurrence of triplesBlock
+    OPTION(() => {
+      const triples = SUBRULE(originalTriplesBlock);
       ACTION(() => elements.push(triples));
-    };
-
-    OPTION(() => parseTriples());
+    });
 
     MANY(() => {
       // [18] BodyNotTriples: ENFORCE SHACL STRICTNESS
       const nonTriple = OR <T12.Pattern>([
-        { ALT: () => SUBRULE(originalFilter) },
-        { ALT: () => SUBRULE(negation) },
-        { ALT: () => SUBRULE(originalBind) }
+        { ALT: () => SUBRULE2(originalFilter) },
+        { ALT: () => SUBRULE3(negation) },
+        { ALT: () => SUBRULE4(originalBind) }
       ]);
       ACTION(() => elements.push(nonTriple));
-      OPTION2(() => parseTriples());
+      
+      // Second occurrence of triplesBlock - use SUBRULE5
+      OPTION2(() => {
+        const triples = SUBRULE5(originalTriplesBlock);
+        ACTION(() => elements.push(triples));
+      });
     });
 
     return ACTION(() => elements);
@@ -254,34 +258,31 @@ interface InternalDecl {
 
 export const shaclDeclarationBlock: SparqlGrammarRule<'declaration', ShaclDeclarationNode> = {
   name: 'declaration',
-  impl: ({ CONSUME, CONSUME2, SUBRULE, SUBRULE2, SUBRULE3, OR, ACTION }) => (C) => {
+  impl: ({ CONSUME, CONSUME2, CONSUME3, CONSUME4, CONSUME5, CONSUME6, SUBRULE, SUBRULE2, SUBRULE3, SUBRULE4, OR, ACTION }) => (C) => {
     
-    const parseSingleArg = () => {
-      CONSUME(T11.lex.symbols.LParen);
-      const arg = SUBRULE(originalIri);
-      CONSUME(T11.lex.symbols.RParen);
-      return [arg];
-    };
-
     // The OR block returns the raw data needed to build the node
     const result = OR<InternalDecl>([
       { ALT: () => {
           const t = CONSUME(ST.TransitiveKeyword);
-          const args = parseSingleArg();
-          return {token: t, args };
+          CONSUME(T11.lex.symbols.LParen);
+          const arg = SUBRULE(originalIri);
+          CONSUME(T11.lex.symbols.RParen);
+          return {token: t, args: [arg] };
       }},
       { ALT: () => {
-          const t = CONSUME(ST.SymmetricKeyword);
-          const args = parseSingleArg();
-          return {token: t, args };
-      }},
-      { ALT: () => {
-          const t = CONSUME(ST.InverseKeyword);
+          const t = CONSUME2(ST.SymmetricKeyword);
           CONSUME2(T11.lex.symbols.LParen);
-          const arg1 = SUBRULE2(originalIri);
-          CONSUME(T11.lex.symbols.comma);
-          const arg2 = SUBRULE3(originalIri);
-          CONSUME2(T11.lex.symbols.RParen);
+          const arg = SUBRULE2(originalIri);
+          CONSUME3(T11.lex.symbols.RParen);
+          return {token: t, args: [arg] };
+      }},
+      { ALT: () => {
+          const t = CONSUME3(ST.InverseKeyword);
+          CONSUME4(T11.lex.symbols.LParen);
+          const arg1 = SUBRULE3(originalIri);
+          CONSUME5(T11.lex.symbols.comma);
+          const arg2 = SUBRULE4(originalIri);
+          CONSUME6(T11.lex.symbols.RParen);
           return {token: t, args: [arg1, arg2] };
       }}
     ]);
@@ -341,23 +342,25 @@ export const negation: SparqlGrammarRule<'negation', T12.PatternMinus> = {
 // [19] BodyTriplesBlock ::= TriplesBlock
 export const bodyBasic: SparqlGrammarRule<'bodyBasic', T12.Pattern[]> = {
   name: 'bodyBasic',
-  impl: ({ OPTION, OPTION2, MANY, SUBRULE, ACTION }) => (C) => {
+  impl: ({ OPTION, OPTION2, MANY, SUBRULE, SUBRULE2, SUBRULE3, ACTION }) => (C) => {
     const elements: T12.Pattern[] = [];
 
-    const parseTriples = () => {
-      const triples = SUBRULE(originalTriplesBlock); // https://www.w3.org/TR/sparql12-query/#rTriplesBlock
+    // 1. Optional Triples (first occurrence)
+    OPTION(() => {
+      const triples = SUBRULE(originalTriplesBlock);
       ACTION(() => elements.push(triples));
-    };
-
-    // 1. Optional Triples
-    OPTION(() => parseTriples());
+    });
 
     // 2. Loop: ( Filter Triples? )*
     MANY(() => {
-      const filter = SUBRULE(originalFilter);
+      const filter = SUBRULE2(originalFilter);
       ACTION(() => elements.push(filter));
       
-      OPTION2(() => parseTriples());
+      // Second occurrence of triplesBlock - use SUBRULE3
+      OPTION2(() => {
+        const triples = SUBRULE3(originalTriplesBlock);
+        ACTION(() => elements.push(triples));
+      });
     });
 
     return ACTION(() => elements);

@@ -1,5 +1,8 @@
 import { ParserBuilder } from '@traqula/core';
-import { sparql12ParserBuilder } from '@traqula/parser-sparql-1-2';
+import type { IRecognitionException } from '@traqula/chevrotain';
+import { sparql12ParserBuilder, SparqlParser } from '@traqula/parser-sparql-1-2';
+import * as TR11 from '@traqula/rules-sparql-1-1';
+import * as TR12 from '@traqula/rules-sparql-1-2';
 import { shaclTokens } from './shaclTokens.js';
 import { 
   shaclRuleSet, 
@@ -20,8 +23,20 @@ import {
 } from './shaclRules.js';
 import { SparqlContext } from '@traqula/rules-sparql-1-2';
 
+function defaultErrorHandler(errors: IRecognitionException[]): void {
+    const firstError = errors[0];
+    const messageBuilder: string[] = [ 'Parse error' ];
+    const lineIdx = firstError.token.startLine;
+    messageBuilder.push(` at line ${lineIdx}, column ${firstError.token.startColumn}`);
+    messageBuilder.push(`\nToken found: '${firstError.token.image}' (type: ${firstError.token.tokenType.name})`);
+    messageBuilder.push(`\n${firstError.message}`);
+    throw new Error(messageBuilder.join(''));
+  }
+
 // Create the builder
-export const shaclParserBuilder: ParserBuilder<SparqlContext, any, any> = sparql12ParserBuilder
+export const shaclParserBuilder = ParserBuilder.create(sparql12ParserBuilder)
+.addRuleRedundant(TR12.gram.versionDecl)
+.addRuleRedundant(TR11.gram.baseDecl)
 .addRule(shaclRuleSet)
 .addRule(shaclRuleOrDataBlock)
 .addRule(shaclPrologue)
@@ -37,11 +52,18 @@ export const shaclParserBuilder: ParserBuilder<SparqlContext, any, any> = sparql
 .addRule(bodyBasic)
 .addRule(triplesTemplateBlock)
 .addRule(shaclDeclarationBlock);
+
+type Parser = ReturnType<typeof shaclParserBuilder.build>;
+
 // Build the Parser
-export const shaclParser = shaclParserBuilder.build({
+export const shaclParser: Parser = shaclParserBuilder.build({
   tokenVocabulary: shaclTokens,
+  parserConfig: {
+    skipValidations: false,
+  },
   lexerConfig: {
     positionTracking: 'full',
     skipValidations: false
-  }
+  },
+  errorHandler: (errors) => defaultErrorHandler(errors)
 });

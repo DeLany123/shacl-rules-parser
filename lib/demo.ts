@@ -17,7 +17,7 @@ const context: SparqlContext = {
     astFactory: factory,
     prefixes: {}, // Starts empty, but the parser will populate this with the prefixes found in the SHACL input
     baseIRI: undefined, // No base IRI provided in this example
-    skipValidation: false, // We want to validate that used variables are in scope
+    skipValidation: true, // Skip SPARQL's variable scoping validation for SHACL rules
     parseMode: new Set(), // No special parse modes needed for this example
 }
 try {
@@ -25,8 +25,32 @@ try {
   console.log(JSON.stringify(result, null, 2));
 } catch (error: any) {
   console.log("\n PARSE ERROR");
-  console.log("---------------");
-  // Traqula errors often contain the specific message
+  console.log("===============");
+  
+  // Extract line and column from error message
+  const lineMatch = error.message.match(/line (\d+), column (\d+)/);
+  if (lineMatch) {
+    const lineNum = parseInt(lineMatch[1], 10);
+    const colNum = parseInt(lineMatch[2], 10);
+    
+    const lines = shaclInput.split('\n');
+    console.log("\nInput being parsed:");
+    console.log("-------------------");
+    
+    // Show all lines with line numbers
+    lines.forEach((line, idx) => {
+      const displayLineNum = idx + 1;
+      console.log(`${displayLineNum.toString().padStart(2)}: ${line}`);
+      
+      // Add pointer for error line
+      if (displayLineNum === lineNum) {
+        const pointer = ' '.repeat(4 + colNum - 1) + '^';
+        console.log(pointer);
+      }
+    });
+    console.log("-------------------\n");
+  }
+  
   console.log(error.message); 
-  console.log("---------------");
+  console.log("===============");
 }
