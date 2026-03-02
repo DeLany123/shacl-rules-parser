@@ -390,4 +390,4 @@ export const triplesTemplateBlock: SparqlGrammarRule<'triplesTemplateBlock', Tri
 
 // [23] TriplesTemplate ::= TriplesSameSubject ( '.' TriplesTemplate? )?
 // This is the same one as the sparql rule. So can reuse from Traqula
-const originalTriplesTemplate = sparql12ParserBuilder.getRule('triplesTemplate');
+const originalTriplesTemplate = sparql12ParserBuilder.getRule(T11.gram.triplesTemplate.name);

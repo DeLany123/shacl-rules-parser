@@ -27,7 +27,9 @@
   "include": [
     "lib/**/*.ts",
     "test/**/*.ts"
-, "lib/demo.ts"  ],
+,
+    "lib/shaclParser/demo.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist/**"
