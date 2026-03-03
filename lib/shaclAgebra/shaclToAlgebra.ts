@@ -1,29 +1,33 @@
 import { toAlgebra12Builder } from '@traqula/algebra-sparql-1-2';
 import type { Algebra, AlgebraIndir } from '@traqula/algebra-transformations-1-1';
+import { Types } from '@traqula/algebra-transformations-1-1';
 import type { ShaclRuleNode } from '../shaclParser/shaclTypes.js';
 
-// 1. Retrieve the original SPARQL translation rules we want to reuse
 const origTranslateGraphPattern = toAlgebra12Builder.getRule('translateGraphPattern');
-const origTranslateBgp = toAlgebra12Builder.getRule('translateBgp');
+const origTranslateBasicGraphPattern = toAlgebra12Builder.getRule('translateBasicGraphPattern');
+const origTranslateQuad = toAlgebra12Builder.getRule('translateQuad');
 
-// 2. Define the translation for a single SHACL Rule
 // We map: ShaclRuleNode (AST) --> Algebra.Construct (Math)
-export const translateShaclRule: AlgebraIndir<'translateShaclRule', Algebra.Construct, [ShaclRuleNode]> = {
+export const translateShaclRule: AlgebraIndir<'translateShaclRule', Algebra.Operation, [ShaclRuleNode]> = {
   name: 'translateShaclRule',
-  fun: $ => (C, ruleAst) => {
-    // A. Translate the WHERE clause (body) into an Algebra Operation (e.g., Join, Filter, Bgp)
-    // We pass this to the standard SPARQL graph pattern translator
-    const patternAlgebra = $.SUBRULE(origTranslateGraphPattern, ruleAst.body);
+  fun: ({ SUBRULE }) => (C, ruleAst) => {
+    // We use translateGraphPattern because the body CAN contain property paths, filters, etc.
+    const patternAlgebra = SUBRULE(origTranslateGraphPattern, ruleAst.body);
+    // B. Translate the RULE template (head) into a strict Pattern[]
+    const flattenedTriples: any[] = [];
 
-    // B. Translate the RULE (head) clause into a Construct Template
-    // Traqula's bgp translator returns an Algebra.Bgp. We just extract its patterns.
-    const headBgpAlgebra = $.SUBRULE(origTranslateBgp, ruleAst.head);
+    // 1. Flatten the AST triples
+    SUBRULE(origTranslateBasicGraphPattern, ruleAst.head.triples, flattenedTriples);
+
+    // 2. Translate each flat AST triple into an Algebra.Pattern
+    const templatePatterns = flattenedTriples.map(triple =>
+      SUBRULE(origTranslateQuad, triple));
 
     // C. Return a standard SPARQL Construct Algebra object!
     return {
-      type: 'construct',
+      type: Types.CONSTRUCT,
       input: patternAlgebra,
-      template: headBgpAlgebra.patterns,
+      template: templatePatterns,
     };
   },
 };

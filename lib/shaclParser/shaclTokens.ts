@@ -3,7 +3,7 @@ import { lex as l } from '@traqula/rules-sparql-1-2';
 
 // Import { lex as l1 } from '@traqula/rules-sparql-1-1';
 
-export const ImportsKeyword = createToken({ name: 'ImportsKeyword', pattern: /imports/iu });
+export const ImportsKeyword = createToken({ name: 'ImportsKeyword', pattern: /imports/i });
 export const RuleKeyword = createToken({ name: 'RuleKeyword', pattern: /rule/i });
 export const DataKeyword = createToken({ name: 'DataKeyword', pattern: /data/i });
 
