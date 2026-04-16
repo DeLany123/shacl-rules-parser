@@ -3,6 +3,7 @@ import { ParserBuilder } from '@traqula/core';
 import { sparql12ParserBuilder } from '@traqula/parser-sparql-1-2';
 import * as TR11 from '@traqula/rules-sparql-1-1';
 import * as TR12 from '@traqula/rules-sparql-1-2';
+import type { SparqlContext } from '@traqula/rules-sparql-1-2';
 import {
   shaclDataBlock,
   shaclDeclarationBlock,
@@ -15,6 +16,7 @@ import {
 import { bodyBasic, bodyPattern, bodyPattern1, negation } from './grammar/patterns.js';
 import { importsDecl, prologue1, shaclPrologue, shaclRuleOrDataBlock, shaclRuleSet } from './grammar/prologue.js';
 import { shaclTokens } from './shaclTokens.js';
+import type { RuleOrDataBlockType } from './shaclTypes.js';
 
 function defaultErrorHandler(errors: IRecognitionException[]): void {
   const firstError = errors[0];
@@ -47,10 +49,10 @@ export const shaclParserBuilder = ParserBuilder.create(sparql12ParserBuilder)
   .addRule(triplesTemplateBlock)
   .addRule(shaclDeclarationBlock);
 
-type Parser = ReturnType<typeof shaclParserBuilder.build>;
+export type ShaclParserType = ReturnType<typeof shaclParserBuilder.build>;
 
 // Build the Parser
-export const shaclParser: Parser = shaclParserBuilder.build({
+export const rawParser: ShaclParserType = shaclParserBuilder.build({
   tokenVocabulary: shaclTokens,
   parserConfig: {
     skipValidations: false,
@@ -61,3 +63,16 @@ export const shaclParser: Parser = shaclParserBuilder.build({
   },
   errorHandler: errors => defaultErrorHandler(errors),
 });
+
+// Parser wrapper
+export class ShaclParser {
+  private readonly parser: ShaclParserType;
+
+  public constructor() {
+    this.parser = rawParser;
+  }
+
+  public parse(input: string, context: SparqlContext): RuleOrDataBlockType {
+    return this.parser.shaclRuleSet(input, context);
+  }
+}

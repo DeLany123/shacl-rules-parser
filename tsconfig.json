@@ -2,10 +2,7 @@
   "compileOnSave": true,
   "compilerOptions": {
     "target": "es2022",
-    "lib": [
-      "es2022",
-      "dom"
-    ],
+    "lib": ["es2022", "dom"],
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "types": ["vitest/globals"],
@@ -16,21 +13,20 @@
     "declaration": true,
     "downlevelIteration": true,
     "inlineSources": true,
+
+    "rootDir": "lib",
     "outDir": "dist/esm",
+
     "preserveConstEnums": true,
     "removeComments": false,
     "sourceMap": true,
-
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": [
-    "lib/**/*.ts",
-    "test/**/*.ts"
-,
-    "lib/shaclParser/demo.ts"
+  "include":[
+    "lib/**/*.ts"
   ],
-  "exclude": [
+  "exclude":[
     "node_modules",
     "dist/**"
   ]

@@ -1,10 +1,9 @@
-import { ParserRule } from '@traqula/core';
+import type { ParserRule , Node } from '@traqula/core';
 import { sparql12ParserBuilder } from '@traqula/parser-sparql-1-2';
-import * as ST from './shaclTokens.js';
-import { SparqlGrammarRule, SparqlRule, TermIri } from '@traqula/rules-sparql-1-1';
-import { Node } from '@traqula/core';
+import type { SparqlGrammarRule, TermIri } from '@traqula/rules-sparql-1-1';
 import * as T11 from '@traqula/rules-sparql-1-1';
 import type * as T12 from '@traqula/rules-sparql-1-2';
+import * as ST from './shaclTokens.js';
 
 
 // Reuse sparql rules

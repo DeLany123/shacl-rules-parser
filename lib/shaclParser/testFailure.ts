@@ -1,7 +1,7 @@
 // @ts-check
 import { LexerBuilder } from '@traqula/core';
 import { shaclTokens } from './shaclTokens.js';
-import { shaclParser } from './shaclParser.js';
+import { ShaclParser } from './shaclParser.js';
 import { AstFactory } from '@traqula/rules-sparql-1-1';
 
 
