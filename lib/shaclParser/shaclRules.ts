@@ -251,7 +251,7 @@ export type ShaclDeclarationNode = Node & {
 
 // We define a small internal interface for the intermediate object
 interface InternalDecl {
-    token: any; // IToken
+    token: any;
     args: T12.TermIri[];
 }
 
