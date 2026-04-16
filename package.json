@@ -1,7 +1,7 @@
 {
   "name": "@landmaes/shacl-rule-1-2-parser",
   "type": "module",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "packageManager": "yarn@1.22.22",
   "description": "A Traqula-based parser for SHACL-RULE syntax",
   "lsd:module": true,
