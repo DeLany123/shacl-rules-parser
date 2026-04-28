@@ -1,13 +1,11 @@
 // @ts-check
 import { LexerBuilder } from '@traqula/core';
-import { shaclTokens } from './shaclTokens.js';
-import { ShaclParser } from './shaclParser.js';
 import { AstFactory } from '@traqula/rules-sparql-1-1';
-
+import { shaclTokens } from './shaclTokens.js';
 
 const lexer = LexerBuilder.create()
-    .add(...shaclTokens)
-    .build();
+  .add(...shaclTokens)
+  .build();
 
 // Your complex snippet
 const shaclInput = `
@@ -21,8 +19,8 @@ WHERE { ?x :p ?v1  FILTER ( ?v1 > 0 )  ?x :q ?v2  FILTER ( ?v2 > 0 )  }
 
 const lexingResult = lexer.tokenize(shaclInput);
 
-const context = { 
-    astFactory: new AstFactory() 
+const context = {
+  astFactory: new AstFactory(),
 };
 
-// const result = shaclParser.shaclRuleSet(shaclInput, new Sparql);
+// Const result = shaclParser.shaclRuleSet(shaclInput, new Sparql);

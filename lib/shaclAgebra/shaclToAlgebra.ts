@@ -1,9 +1,10 @@
-import {toAlgebra12Builder} from '@traqula/algebra-sparql-1-2';
-import type {Algebra, AlgebraIndir} from '@traqula/algebra-transformations-1-1';
-import {IndirBuilder} from '@traqula/core';
-import type {RuleOrDataBlockType, shaclDataNode, ShaclRuleNode} from '../shaclParser/shaclTypes.js';
-import {ContextDefinition} from "@traqula/rules-sparql-1-2";
-import {ContextConfigs, createAlgebraContext} from "@traqula/algebra-transformations-1-2";
+import { toAlgebra12Builder } from '@traqula/algebra-sparql-1-2';
+import type { Algebra, AlgebraIndir } from '@traqula/algebra-transformations-1-1';
+import type { ContextConfigs } from '@traqula/algebra-transformations-1-2';
+import { createAlgebraContext } from '@traqula/algebra-transformations-1-2';
+import { IndirBuilder } from '@traqula/core';
+import type { ContextDefinition } from '@traqula/rules-sparql-1-2';
+import type { RuleOrDataBlockType, shaclDataNode, ShaclRuleNode } from '../shaclParser/shaclTypes.js';
 
 const origTranslateGraphPattern = toAlgebra12Builder.getRule('translateGraphPattern');
 const origTranslateBasicGraphPattern = toAlgebra12Builder.getRule('translateBasicGraphPattern');
@@ -14,7 +15,7 @@ const registerContextDefinitions = toAlgebra12Builder.getRule('registerContextDe
 // Starting point
 export const shaqlQuery: AlgebraIndir<'shaqlQuery', any, [RuleOrDataBlockType]> = {
   name: 'shaqlQuery',
-  fun: ({SUBRULE}) => (C, ast) => {
+  fun: ({ SUBRULE }) => (C, ast) => {
     // Register prefixes that are at the top
     const initialContextDefs = ast.initialPrologue.filter(p => p.type === 'contextDef');
     SUBRULE(registerContextDefinitions, <ContextDefinition[]>initialContextDefs);
@@ -55,7 +56,7 @@ export const data: AlgebraIndir<'data', Algebra.Pattern[], [shaclDataNode]> = {
     return bgp.patterns;
   },
 };
-// export type shaclOperation = Algebra.Operation & ShaclRule;
+// Export type shaclOperation = Algebra.Operation & ShaclRule;
 
 // Map: ShaclRuleNode (AST) --> Algebra.Construct (Math)
 // TODO can maybe reuse construct

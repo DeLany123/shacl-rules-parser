@@ -1,7 +1,7 @@
 # SHACL Rules Grammar Tracker
 
-| Done | Reused | ID | Rule Name | EBNF Definition | Location | 
-|:----:|:------:| :-- | :--- | :--- | :--- | 
+| Done | Reused | ID | Rule Name | EBNF Definition | Location |
+|:----:|:------:| :-- | :--- | :--- | :--- |
 | [x]  |  [ ]   | [1] | `RuleSet` | `RuleOrDataBlock` | `prologue.ts` |
 | [x]  |  [ ]   | [2] | `RuleOrDataBlock` | `Prologue ( ( Rule \| Data )+ ( Prologue1 ( Rule \| Data )? )* )?` | `prologue.ts` |
 | [x]  |  [ ]   | [3] | `Prologue` | `Prologue1*` |
@@ -71,4 +71,4 @@
 | [x]  |  [x]   | [67] | `ReifiedTripleSubject` | `Var \| iri \| RDFLiteral \| NumericLiteral \| BooleanLiteral \| BlankNode \| ReifiedTriple` |
 | [x]  |  [x]   | [68] | `ReifiedTripleObject` | `Var \| iri \| RDFLiteral \| NumericLiteral \| BooleanLiteral \| BlankNode \| ReifiedTriple \| TripleTerm` |
 | [x]  |  [x]   | [69] | `TripleTerm` | `'<<(' TripleTermSubject Verb TripleTermObject ')>>'` |
-| [x]  |  [x]   | [70] | `TripleTermSubject` | `Var \| iri \| RDFLiteral \| NumericLiteral \| BooleanLiteral \| BlankNode` |    
+| [x]  |  [x]   | [70] | `TripleTermSubject` | `Var \| iri \| RDFLiteral \| NumericLiteral \| BooleanLiteral \| BlankNode` |

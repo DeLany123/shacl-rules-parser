@@ -3,6 +3,8 @@
   "compilerOptions": {
     "target": "es2022",
     "lib": ["es2022", "dom"],
+
+    "rootDir": "lib",
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "types": ["vitest/globals"],
@@ -13,8 +15,6 @@
     "declaration": true,
     "downlevelIteration": true,
     "inlineSources": true,
-
-    "rootDir": "lib",
     "outDir": "dist/esm",
 
     "preserveConstEnums": true,
@@ -23,10 +23,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include":[
+  "include": [
     "lib/**/*.ts"
   ],
-  "exclude":[
+  "exclude": [
     "node_modules",
     "dist/**"
   ]

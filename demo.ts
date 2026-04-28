@@ -1,4 +1,4 @@
-// import fs from 'node:fs';
+// Import fs from 'node:fs';
 // import type {SparqlContext} from '@traqula/rules-sparql-1-2';
 // import {AstFactory, completeParseContext} from '@traqula/rules-sparql-1-2';
 // import {ShaclParser} from './lib/shaclParser/shaclParser.js';

@@ -43,6 +43,7 @@
     "clean": "git clean -dfx",
     "prepare": "husky || true",
     "prepublishOnly": "yarn run build",
+    "lint": "eslint . --cache",
     "test": "vitest test --run"
   },
   "dependencies": {

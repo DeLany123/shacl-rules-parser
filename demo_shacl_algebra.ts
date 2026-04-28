@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import type { ContextConfigs } from '@traqula/algebra-transformations-1-2';
 import { AlgebraFactory, createAlgebraContext } from '@traqula/algebra-transformations-1-2';
 import { AstFactory, completeParseContext, type SparqlContext } from '@traqula/rules-sparql-1-2';
-import { shaclParser } from './lib/shaclParser/shaclParser.js';
 import { shaclAlgebraBuilder } from './lib/shaclAgebra/shaclToAlgebra.js';
+import { shaclParser } from './lib/shaclParser/shaclParser.js';
 
 const shaclInput = `
     PREFIX : <http://example/>
