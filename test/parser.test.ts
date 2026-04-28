@@ -68,3 +68,112 @@ describe('toShaclAlgebra', () => {
     expect(algebra[0].type).toBe('shaclRule');
   });
 });
+
+describe('path expressions — valid SHACL subsets', () => {
+  it('accepts a simple IRI predicate', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result true . } WHERE { ?x :p ?y . }`,
+      parseContext(),
+    )).not.toThrow();
+  });
+
+  it('accepts the "a" keyword as predicate', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :isTyped true . } WHERE { ?x a :C . }`,
+      parseContext(),
+    )).not.toThrow();
+  });
+
+  it('accepts a sequence path ( :a/:b )', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?z . } WHERE { ?x :a/:b ?z . }`,
+      parseContext(),
+    )).not.toThrow();
+  });
+
+  it('accepts an inverse path ( ^:a )', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x ^:a ?y . }`,
+      parseContext(),
+    )).not.toThrow();
+  });
+
+  it('accepts a grouped sequence path ( (:a/:b) )', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?z . } WHERE { ?x (:a/:b) ?z . }`,
+      parseContext(),
+    )).not.toThrow();
+  });
+});
+
+describe('path expressions — forbidden SPARQL features (negative tests)', () => {
+  it('rejects path alternation ( :a|:b ) in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :a|:b ?y . }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects optional path modifier ( :a? ) in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :a? ?y . }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects zero-or-more path modifier ( :a* ) in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :a* ?y . }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects one-or-more path modifier ( :a+ ) in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :a+ ?y . }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects negated property set ( !:a ) in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x !:a ?y . }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects path alternation inside NOT { } negation block', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result true . } WHERE { ?x :p ?v . NOT { ?x :a|:b ?y . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects one-or-more path modifier inside NOT { } negation block', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result true . } WHERE { ?x :p ?v . NOT { ?x :a+ ?y . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects IF-THEN rule with path alternation in body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       IF { ?x :a|:b ?y . } THEN { ?x :result ?y . }`,
+      parseContext(),
+    )).toThrow();
+  });
+});
+

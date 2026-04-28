@@ -14,6 +14,7 @@ import {
   shaclRuleBlock,
   triplesTemplateBlock,
 } from './grammar/blocks.js';
+import { shaclPath, shaclPathElt, shaclPathPrimary } from './grammar/paths.js';
 import { bodyBasic, bodyPattern, bodyPattern1, negation } from './grammar/patterns.js';
 import { importsDecl, prologue1, shaclPrologue, shaclRuleOrDataBlock, shaclRuleSet } from './grammar/prologue.js';
 import { shaclTokens } from './shaclTokens.js';
@@ -37,7 +38,19 @@ export const shaclParserBuilder = ParserBuilder.create(sparql12ParserBuilder)
   .addRule(negation)
   .addRule(bodyBasic)
   .addRule(triplesTemplateBlock)
-  .addRule(shaclDeclarationBlock);
+  .addRule(shaclDeclarationBlock)
+  // Patch path rules to enforce SHACL Rules grammar restrictions:
+  // [48] Path ::= PathSequence  (no '|')
+  // [51] PathElt ::= PathPrimary  (no '?', '*', '+')
+  // [52] PathPrimary ::= iri | 'a' | '(' Path ')'  (no '!')
+  .patchRule(shaclPath)
+  .patchRule(shaclPathElt)
+  .patchRule(shaclPathPrimary)
+  // Delete rules that are unreachable after the patches above
+  .deleteRule(TR11.gram.pathMod.name)
+  .deleteRule(TR11.gram.pathNegatedPropertySet.name)
+  .deleteRule(TR11.gram.pathOneInPropertySet.name)
+  .deleteRule(TR11.gram.pathAlternative.name);
 
 export type ShaclParserType = ReturnType<typeof shaclParserBuilder.build>;
 
