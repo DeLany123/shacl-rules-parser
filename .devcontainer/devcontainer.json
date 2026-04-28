@@ -7,7 +7,6 @@
   "mounts": [
     "source=${localWorkspaceFolder}/.devcontainer/.copilot,target=/home/node/.copilot/,type=bind",
   ],
-  forwardPorts: [8080],
   "remoteUser": "node",
   "customizations" : {
     "jetbrains" : {
