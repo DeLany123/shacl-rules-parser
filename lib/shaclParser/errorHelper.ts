@@ -1,4 +1,4 @@
-import type { IRecognitionException } from 'chevrotain';
+import type { IRecognitionException } from '@traqula/chevrotain';
 
 export function formatShaclError(input: string, errors: IRecognitionException[]): string {
   const firstError = errors[0];
@@ -19,8 +19,7 @@ export function formatShaclError(input: string, errors: IRecognitionException[])
     }
   }
 
-  // Include the message and the specific Token Type name for debugging
-  const tokenTypeName = (token.tokenType as any).name || 'UnknownToken';
+  const tokenTypeName = token.tokenType.name;
   messageBuilder.push(`\n${firstError.message} (Found token type: ${tokenTypeName})`);
 
   return messageBuilder.join('');

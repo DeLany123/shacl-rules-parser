@@ -57,14 +57,12 @@ export const shaclRuleOrDataBlock: T11.SparqlGrammarRule<'shaclRuleOrDataBlock',
       });
     });
 
-    return ACTION(() => (
-      {
-        type: 'RuleOrDataBlock',
-        initialPrologue,
-        elements,
-        // TODO
-        loc: C.astFactory.sourceLocation(undefined),
-      }));
+    return ACTION(() => ({
+      type: 'RuleOrDataBlock',
+      initialPrologue,
+      elements,
+      loc: C.astFactory.sourceLocation(undefined),
+    }));
   },
 };
 

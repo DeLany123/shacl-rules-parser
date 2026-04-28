@@ -3,11 +3,11 @@ import * as T11 from '@traqula/rules-sparql-1-1';
 import type * as T12 from '@traqula/rules-sparql-1-2';
 import * as ST from '../shaclTokens.js';
 import type {
+  ShaclDataNode,
   ShaclDeclarationNode,
+  ShaclHeadTemplate,
   ShaclRuleBlockResult,
   ShaclRuleNode,
-  shaclDataNode,
-  ShaclHeadTemplate,
   TriplesTemplateBlock,
 } from '../shaclTypes.js';
 import {
@@ -124,7 +124,7 @@ export const shaclDeclarationBlock: T11.SparqlGrammarRule<'declaration', ShaclDe
 
 // [14] DATA ::= 'DATA' TriplesTemplateBlock
 
-export const shaclDataBlock: T11.SparqlGrammarRule<'shaclDataBlock', shaclDataNode> = {
+export const shaclDataBlock: T11.SparqlGrammarRule<'shaclDataBlock', ShaclDataNode> = {
   name: 'shaclDataBlock',
   impl: ({ CONSUME, SUBRULE, ACTION }) => (C) => {
     const token = CONSUME(ST.DataKeyword);
@@ -153,7 +153,6 @@ export const triplesTemplateBlock: T11.SparqlGrammarRule<'triplesTemplateBlock',
 };
 
 // [15] HeadTemplate ::= TriplesTemplateBlock
-// Something like this, is it necessary? Or can we directly use triplesTemplateBlock in 11 for example??
 export const shaclHeadTemplate: T11.SparqlGrammarRule<'shaclHeadTemplate', ShaclHeadTemplate> = {
   name: 'shaclHeadTemplate',
   impl: ({ SUBRULE, ACTION }) => (C) => {
@@ -167,5 +166,5 @@ export const shaclHeadTemplate: T11.SparqlGrammarRule<'shaclHeadTemplate', Shacl
 };
 
 // [23] TriplesTemplate ::= TriplesSameSubject ( '.' TriplesTemplate? )?
-// This is the same one as the sparql rule. So can reuse from Traqula
+// Reused from the SPARQL 1.2 parser
 const originalTriplesTemplate = sparql12ParserBuilder.getRule(T11.gram.triplesTemplate.name);

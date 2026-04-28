@@ -53,6 +53,7 @@
     "@traqula/core": "^1.0.7",
     "@traqula/generator-sparql-1-2": "^1.0.7",
     "@traqula/parser-sparql-1-2": "^1.0.7",
+    "@traqula/rules-sparql-1-1": "^1.0.7",
     "@traqula/rules-sparql-1-2": "^1.0.7",
     "rdf-data-factory": "^2.0.2"
   },

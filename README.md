@@ -1,203 +1,110 @@
-# Query Rewriting SPARQL 1.2 over RDF 1.1
+# SHACL Rules 1.2 Parser
 
-We will be using SPARQL CONSTRUCT queries to express the mapping between RDF 1.1 and RDF 1.2.
-![img.png](assets/schematic-plan.png)
+A [Traqula](https://github.com/comunica/traqula)-based parser for the [SHACL-RULE](https://www.w3.org/TR/shacl/#rules) syntax extended for RDF 1.2.
 
-Query rewrites like this are called GAV, LAV and GLAV in literature.
-See: Principles of Data Integration - AnHai Doan - Alon Halevy - Zachary Ives
-NOTE: in the construct template/ mapping head, you cannot share non-existential atoms (bnodes) between triples.
-(unless you bind to them through your bgp (they map to a source bnode))
+## Features
 
-There is a working draft for a spec describing the mapping between RDF1.1 and RDF 1.2: [RDF1.2 interoperability](https://w3c.github.io/rdf-interop/spec/)
+- Parses SHACL rule sets expressed in a SPARQL-like syntax (`RULE`/`DATA`/`IF-THEN` blocks)
+- Supports `IMPORTS` declarations and standard `PREFIX`/`BASE` declarations
+- Translates the resulting AST to a SPARQL algebra representation via `toShaclAlgebra`
+- Built on top of the [Traqula](https://github.com/comunica/traqula) SPARQL 1.2 parser
 
-Example data expressed in Turtle 1.2
+## Installation
 
-### Sparql 1.2 rewrite
-
-The intention is that you have a SPARQL 1.2 query and mapping using construct queries.
-The body of this mapping should not contain any SPARQL 1.2 syntax, but the head can contain triple terms.
-Using this approach means that you cannot rewrite recursive triple terms for arbitrary depth,
-you will need a construct for every depth you want to support.
-What our rewriter will do is map each triple pattern in your BGP to a list of unions for each construct over some selects.
-When you are solving the variables of your mapping head, it should be noted that triple term binding appears outside the SUB-SELECTS,
-thereby creating a toplevel query that can use SPARQL 1.2 construct, but does not contain any BGPs, and a bunch of subselects that only use SPARQL1.1 and do contain the BGPs.
-![](assets/query-rewritten.jpg)
-
-### RDF 1.2 examples
-
-```
-:me :name "jitse" ~ :t {| :statedBy :govBE |}
-```
--- RDF 1.2 spec ->
-```
-:me :name "jitse" .
-< :me :name "jitse" ~ :t > :satatedBy :govBE
-```
--- RDF 1.2 spec ->
-```
-:me :name "jitse"
-:t rdf:reifies <<( :me :name "jitse" )>>
-:t :statedBy :govBE
+```bash
+npm install @landmaes/shacl-rule-1-2-parser
 ```
 
-#### Interop spec/ RDF reification
--- to RDF1.1 ->
-```
-:me :name "jitse" .
-:t :rdf:reifies _:temp .
-:t :statedBy :govBE .
+## Usage
 
-_:temp a rdftripleTerm .
-_:temp rdf:ttSubject :me .
-_:temp rdf:ttPredicate :name .
-_:temp rdf:ttObject "jitse" .
-```
+### Parsing a SHACL rule set
 
-construct to go back:
-```
-CONSTRUCT {
-    ?t rdf:reifies <<( ?s ?p ?o )>>
-} WHERE {
-    ?t rdf:reifies [
-        a rdf:tripleTerm ;
-        rdf:ttSubject ?s ;
-        rdf:ttPredicate ?p ;
-        rdf:ttObject ?o ;
-    ]
-}
-CONSTRUCT {
-    ?s ?p ?o .
-} WHERE {
-    ?s ?p ?o .
-    # Next filter is not needed since in 1.1 the function does not exist
-    FILTER ( !isTripleTerm(?o)) .
-    FILTER ( ?p != "rdf:reifies" && NOT EXISTS {
-        ?sRoot rdf:reifies ?s .
-    })
-}
-```
-Construct to go to: (Because 2 ways, can do GLAV)
-```
-CONSTRUCT {
-    ?t rdf:reifies [
-        a rdf:tripleTerm ;
-        rdf:ttSubject ?s ;
-        rdf:ttPredicate ?p ;
-        rdf:ttObject ?o ;
-    ]
-} WHERE {
-    ?t rdf:reifies <<( ?s ?p ?o )>>
-}
+```typescript
+import { AstFactory, completeParseContext } from '@traqula/rules-sparql-1-2';
+import { ShaclParser } from '@landmaes/shacl-rule-1-2-parser';
+
+const parser = new ShaclParser();
+const context = completeParseContext({ astFactory: new AstFactory() });
+
+const ast = parser.parse(`
+  PREFIX : <http://example/>
+
+  RULE { ?x :adult true . }
+  WHERE { ?x :age ?a . FILTER (?a >= 18) }
+`, context);
 ```
 
-#### Singleton Property
--- to RDF 1.1 ->
-```
-:me :name "jitse"
-:me :name#1 "jitse"
-:name#1 rdf:singletonProperyOf :name ;
-        :statedBy :govBE .
+### Converting to SPARQL algebra
+
+```typescript
+import { toShaclAlgebra } from '@landmaes/shacl-rule-1-2-parser';
+
+const algebra = toShaclAlgebra(ast);
 ```
 
-Construct to go back:
-```
-CONSTRUCT {
-    ?p rdf:reifies <<( ?s ?trueProp ?o )>>
-} WHERE {
-    ?s ?p ?o .
-    ?p rdf:singletonPropertyOf ?trueProp .
-}
-```
+### Rule syntax
 
-#### Named Graphs
-Either:
-1. trust the graph has only one triple,
-2. use one subject multiple times to reify many triples,
-3. Annotate the graph has only one triple (could also use a count subquery?)
+Three rule syntaxes are supported:
 
--- to RDF1.1 ->
-```
-:me :name "jitse"
-_:temp { :me :name "jitse" }
-_:temp :statedBy :govBE .
+**`RULE ... WHERE ...`** — standard SHACL rule:
+```sparql
+PREFIX : <http://example/>
+RULE { ?x :adult true . }
+WHERE { ?x :age ?a . FILTER (?a >= 18) }
 ```
 
-Construct to go back:
-```
-CONSTRUCT {
-    ?t rdf:reifies <<( ?s ?p ?o )>> ; ?p1 ?o1 .
-} WHERE {
-    GRAPH ?t { ?s ?p ?o } .
-    ?t ?p1 ?o1 .
-    OPTIONAL { ?t a some:reificationGraph }
-}
+**`IF ... THEN ...`** — alternative SHACL rule syntax:
+```sparql
+PREFIX : <http://example/>
+IF   { ?x :age ?a . FILTER (?a >= 18) }
+THEN { ?x :adult true . }
 ```
 
-Construct to go back with a check for only one triple
-```
-CONSTRUCT {
-    ?t rdf:reifies <<( ?s ?p ?o )>> ; ?p1 ?o1 .
-} WHERE {
-    {
-        SELECT ?t WHERE {
-            GRAPH ?t { ?s ?p ?o }
-        } GROUP BY (?t) having (count(*) = 1)
-    }
-    GRAPH ?t { ?s ?p ?o } .
-    ?t ?p1 ?o1 .
-}
+**`DATA { ... }`** — inline data block:
+```sparql
+PREFIX : <http://example/>
+DATA { :x :p 1 . }
 ```
 
-#### N-ary
-(used by Wikidata under the [prefixes](https://www.wikidata.org/wiki/EntitySchema:E49), p(property), ps(property statement) and wdt(property direct))
+### IMPORTS declaration
 
--- to RDF 1.1 ->
-```
-:me :name "jitse" .
-:me :nameP _:temp .
-_:temp :statedBy :govBE .
-_:temp :namePs "jitse" .
-
-# Made up properties...
-:nameP :hasDirectProp :name .
-:nameP :hasPropertyStatement ?ps .
+```sparql
+IMPORTS <http://example/ontology>
+PREFIX : <http://example/>
+RULE { ?x :adult true . }
+WHERE { ?x :age ?a . FILTER (?a >= 18) }
 ```
 
-Construct to go back:
-```
-CONSTRUCT {
-    ?rel rdf:reifies <<( ?s ?trueProp ?o )>> ; ?p1 ?o1 .
-} WHERE {
-    ?s ?p ?rel .
-    ?rel ?p1 ?o1 ;
-         ?ps ?o .
+### Low-level parser access
 
-     ?p :hasDirectProp :name ;
-        :hasPropertyStatement ?ps ;
-}
+For direct access without rich error messages, a pre-built `rawParser` is also exported:
+
+```typescript
+import { rawParser } from '@landmaes/shacl-rule-1-2-parser';
 ```
 
-### Matchers
-You match recursive triples:
-`?rel rdf:reifies <<( :me :name ?name )>>`
-=> `(?rel, rdf:reifies, (:me, :name, ?name)) ''` ('' = DefaultGraph)
+## API
 
-#### Why you need a solver:
-Take rewrite head: `?t rdf:reifies <<( ?s ?p ?o )>>`
-With query: `?s1 ?s1 <<( ?s1 ?p1 ?o1 )>>`
-Your solver will now be able to say conclude:
-```
-?t -> rdf:reifies
-?s -> rdf:reifies
-?p -> p1
-?o -> o1
-```
+### `ShaclParser`
 
-### Quirks documented
+A stateful parser class that provides rich, source-aware error messages.
 
-Empty groups emit a single binding that does not bind to anything ([proof](https://www.w3.org/TR/sparql11-query/#emptyGroupPattern)):
-* `SELECT * {}`  gives 1 binding ([query](https://query.comunica.dev/#transientDatasources=%2F%2Ffragments.dbpedia.org%2F2016-04%2Fen&query=SELECT%20*%0AWHERE%20%7B%0A%0A%7D))
-* `SELECT * { {} UNION {} }` gives 2 bindings [(query](https://query.comunica.dev/#transientDatasources=%2F%2Ffragments.dbpedia.org%2F2016-04%2Fen&query=SELECT%20*%0AWHERE%20%7B%0A%20%20%7B%7D%20UNION%20%7B%7D%0A%7D))
+| Method                  | Description                                      |
+|-------------------------|--------------------------------------------------|
+| `parse(input, context)` | Parse a SHACL rule set string and return the AST |
 
-Therefore, a mapping that does not match under a union does **NOT produce the empty group**.
-It does not produce results. To visualize this, one can also use the group: `{ FILTER(false) }` ([query](https://query.comunica.dev/#transientDatasources=%2F%2Ffragments.dbpedia.org%2F2016-04%2Fen&query=SELECT%20*%0AWHERE%20%7B%0A%20%20%7B%20FILTER%28false%29%20%7D%20UNION%20%7B%20FILTER%28false%29%20%7D%0A%7D))
+### `rawParser`
+
+A pre-built parser instance with simple error messages (no source context).
+
+### `toShaclAlgebra(ast)`
+
+Translate a parsed `RuleOrDataBlockType` AST to an array of SPARQL algebra objects.
+
+### `shaclParserBuilder`
+
+The underlying [Traqula `ParserBuilder`](https://github.com/comunica/traqula) instance, for users who want to extend or customise the parser further.
+
+## License
+
+[MIT](https://opensource.org/license/MIT) — written by Lander Maes.
