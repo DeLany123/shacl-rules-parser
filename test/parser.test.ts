@@ -168,7 +168,7 @@ describe('path expressions — forbidden SPARQL features (negative tests)', () =
     )).toThrow();
   });
 
-  it('rejects IF-THEN rule with path alternation in body', () => {
+   it('rejects IF-THEN rule with path alternation in body', () => {
     expect(() => parser.parse(
       `PREFIX : <http://example/>
        IF { ?x :a|:b ?y . } THEN { ?x :result ?y . }`,
@@ -177,3 +177,126 @@ describe('path expressions — forbidden SPARQL features (negative tests)', () =
   });
 });
 
+describe('forbidden built-in functions (negative tests)', () => {
+  it('rejects BOUND() in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(BOUND(?y)) }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects RAND() in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(RAND() > 0.5) }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects MD5() in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(MD5(?y) = "abc") }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects SHA1() in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(SHA1(?y) = "abc") }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects SHA256() in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(SHA256(?y) = "abc") }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects COALESCE() in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(COALESCE(?y, 0) = 0) }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects EXISTS {} in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(EXISTS { ?x :q ?z . }) }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects NOT EXISTS {} in FILTER', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER NOT EXISTS { ?x :q ?z . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects COUNT aggregate in FILTER expression', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . FILTER(COUNT(*) > 0) }`,
+      parseContext(),
+    )).toThrow();
+  });
+});
+
+describe('forbidden graph patterns (negative tests)', () => {
+  it('rejects OPTIONAL { } in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . OPTIONAL { ?x :q ?z . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects UNION in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { { ?x :a ?y . } UNION { ?x :b ?y . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects MINUS { } in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . MINUS { ?x :q ?z . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects VALUES in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { VALUES ?x { :a } ?x :p ?y . }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects SERVICE { } in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { ?x :p ?y . SERVICE <http://example/sparql> { ?x :q ?z . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+
+  it('rejects GRAPH { } in rule body', () => {
+    expect(() => parser.parse(
+      `PREFIX : <http://example/>
+       RULE { ?x :result ?y . } WHERE { GRAPH :g { ?x :p ?y . } }`,
+      parseContext(),
+    )).toThrow();
+  });
+});
