@@ -1,5 +1,5 @@
 /* eslint-disable require-unicode-regexp */
-import { createToken } from '@traqula/core';
+import { createToken, type NamedToken } from '@traqula/core';
 import { lex as l } from '@traqula/rules-sparql-1-2';
 
 export const ImportsKeyword = createToken({ name: 'ImportsKeyword', pattern: /imports/i });
@@ -13,7 +13,7 @@ export const InverseKeyword = createToken({ name: 'InverseKeyword', pattern: /in
 export const NotKeyword = createToken({ name: 'NotKeyword', pattern: /not/i });
 export const ThenKeyword = createToken({ name: 'ThenKeyword', pattern: /then/i });
 
-export const shaclTokens = [
+export const shaclTokens: NamedToken[] = [
   ImportsKeyword,
   RuleKeyword,
   TransitiveKeyword,
