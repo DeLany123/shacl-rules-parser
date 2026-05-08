@@ -13,7 +13,7 @@ In SHACL, the rule lives **inside** the Shape. The shape defines what the node i
 # THE SHAPE
 ex:PersonShape a sh:NodeShape ;
     sh:targetClass ex:Person ; # 1. COUPLING: This shape targets all Persons.
-    
+
     # 2. VALIDATION: Every person MUST have a birthDate
     sh:property [
         sh:path ex:birthDate ;
@@ -49,12 +49,12 @@ N3 is a global logic engine. It doesn't have the concept of a "target" outside o
 
 {
   # 1. MANUAL CHECK: I have to explicitly find the person.
-  ?person a ex:Person . 
-  
+  ?person a ex:Person .
+
   # 2. ADDITIONAL LOGIC
   NOT { ?person ex:taxID ?any }
-} 
-=> 
+}
+=>
 {
   # 3. CONCLUSION
   ?person ex:taxID "GENERIC-ID" .

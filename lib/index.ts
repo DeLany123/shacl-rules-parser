@@ -1,2 +1,2 @@
 export * from './shaclParser/shaclParser.js';
-export * from './shaclAgebra/shaclToAlgebra.js';
+export * from './shaclAlgebra/shaclToAlgebra.js';
