@@ -1,6 +1,7 @@
 import { toAlgebra12Builder } from '@traqula/algebra-sparql-1-2';
-import type { Algebra, AlgebraIndir } from '@traqula/algebra-transformations-1-1';
-import type { ContextConfigs } from '@traqula/algebra-transformations-1-2';
+import { findAllVariables } from '@traqula/algebra-transformations-1-1';
+import type { AlgebraIndir } from '@traqula/algebra-transformations-1-1';
+import type { Algebra, ContextConfigs } from '@traqula/algebra-transformations-1-2';
 import { createAlgebraContext } from '@traqula/algebra-transformations-1-2';
 import { IndirBuilder } from '@traqula/core';
 import type { ContextDefinition } from '@traqula/rules-sparql-1-2';
@@ -76,6 +77,7 @@ export const translateShaclRule: AlgebraIndir<'translateShaclRule', ShaclRule, [
 
 export const shaclAlgebraBuilder = IndirBuilder
   .create(toAlgebra12Builder)
+  .addRuleRedundant(findAllVariables)
   .addRule(shaqlQuery)
   .addRule(data)
   .addRule(translateShaclRule);
